@@ -1,0 +1,83 @@
+@import "/src/resources/styles/color.scss";
+
+.inputContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .inputBox {
+    padding: 0.8rem 0.8rem;
+    border: 1px solid $border-c5;
+    border-radius: 8px;
+    background-color: $white;
+    outline: none;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    display: flex;
+    width: 100%;
+
+    .showPasswordIcon {
+      color: $text-gray;
+      cursor: pointer;
+    }
+
+    &.disabled {
+      background-color: #ececec;
+    }
+
+    &.error {
+      border: 1px solid $orange-loss;
+    }
+
+    > input {
+      width: 100%;
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 1.5rem;
+
+      &::-webkit-input-placeholder:after {
+        content: "*";
+        color: darkred;
+        font-size: 1.5rem;
+      }
+
+      &:-moz-placeholder:after {
+        content: " *";
+        color: red;
+      }
+
+      // .required::-webkit-input-placeholder:after {
+      //   content: " *";
+      //   color: red;
+      // }
+
+      // .required:-moz-placeholder:after {
+      //   content: " *";
+      //   color: red;
+      // }
+
+      // .required:-ms-input-placeholder:after {
+      //   content: " *";
+      //   color: red;
+      // }
+
+      &:disabled {
+        background-color: #ececec;
+      }
+
+      &::placeholder {
+        color: $border-1;
+      }
+    }
+
+    .errorIcon {
+      color: $orange-loss;
+    }
+  }
+
+  .errorMessage {
+    font-size: 1rem;
+    color: $orange-loss;
+  }
+}
