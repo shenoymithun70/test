@@ -1,44 +1,89 @@
 import { useMemo } from "react";
-import { useForm } from "react-final-form";
+import { useForm, Field } from "react-final-form";
+import { FieldArray } from "react-final-form-arrays";
+import styles from "./MetricTable.module.scss";
+import { AiOutlineDelete as DeleteIcon } from "react-icons/ai";
 
-const MetricTable = () => {
-  const { getState } = useForm();
-  console.log("state", getState().values);
-  const componentListState = useMemo(() => {
-    return getState().values["componentList"] ?? [];
-  }, [getState().values]);
+const MetricTable = ({ fields }) => {
+  const { getState, mutators } = useForm();
+  // console.log("state", getState().values);
+  // const componentListState = useMemo(() => {
+  //   return getState().values["componentList"] ?? [];
+  // }, [getState().values]);
 
-  console.log(
-    "componentList State",
-    componentListState,
-    getState().values["componentList"]
-  );
+  // console.log(
+  //   "componentList State",
+  //   componentListState,
+  //   getState().values["componentList"]
+  // );
 
   return (
-    <>
-      {componentListState.length > 0 ? (
+    <div className={styles.tableOuterContainer}>
+      {fields.length > 0 ? (
         <table>
           <thead>
             <tr>
               <th>Component Name</th>
               <th>Time Taken</th>
               <th>No of Components</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
-            {getState().values["componentList"].map((item) => {
+            {fields.map((name, index) => {
               return (
-                <tr>
-                  <td>{item?.componentName}</td>
-                  <td>{item?.timeTaken}</td>
-                  <td>{item?.totalComponents}</td>
+                <tr key={index}>
+                  <td>
+                    <Field
+                      name={`${name}.componentName`}
+                      component="input"
+                      type="text"
+                    >
+                      {(props) => {
+                        return <>{props.input.value}</>;
+                      }}
+                    </Field>
+                  </td>
+                  <td>
+                    <Field
+                      name={`${name}.timeTaken`}
+                      component="input"
+                      type="text"
+                    >
+                      {(props) => {
+                        return <>{props.input.value}</>;
+                      }}
+                    </Field>
+                  </td>
+                  <td>
+                    <Field
+                      name={`${name}.totalComponents`}
+                      component="input"
+                      type="text"
+                    >
+                      {(props) => {
+                        return <>{props.input.value}</>;
+                      }}
+                    </Field>
+                  </td>
+
+                  <td className={styles.deleteColumn}>
+                    <div
+                      className={styles.deleteButton}
+                      onClick={() => {
+                        mutators.remove("componentList", index);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </div>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       ) : null}
-    </>
+    </div>
   );
 };
 
