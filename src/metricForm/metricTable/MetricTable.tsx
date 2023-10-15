@@ -5,7 +5,7 @@ import styles from "./MetricTable.module.scss";
 import { AiOutlineDelete as DeleteIcon } from "react-icons/ai";
 
 const MetricTable = ({ fields }) => {
-  const { getState, mutators } = useForm();
+  const { mutators } = useForm();
   // console.log("state", getState().values);
   // const componentListState = useMemo(() => {
   //   return getState().values["componentList"] ?? [];
@@ -17,9 +17,11 @@ const MetricTable = ({ fields }) => {
   //   getState().values["componentList"]
   // );
 
+  console.log(fields);
+
   return (
     <div className={styles.tableOuterContainer}>
-      {fields.length > 0 ? (
+      {fields && fields.length > 0 ? (
         <table>
           <thead>
             <tr>
@@ -30,13 +32,14 @@ const MetricTable = ({ fields }) => {
             </tr>
           </thead>
           <tbody>
-            {fields.map((name, index) => {
+            {fields && fields.length > 0 ? fields.map((name, index) => {
+              console.log("fields", name, fields)
               return (
-                <tr key={index}>
+                <tr key={`${name}`}>
                   <td>
                     <Field
                       name={`${name}.componentName`}
-                      component="input"
+                      // component="input"
                       type="text"
                     >
                       {(props) => {
@@ -47,7 +50,7 @@ const MetricTable = ({ fields }) => {
                   <td>
                     <Field
                       name={`${name}.timeTaken`}
-                      component="input"
+                      // component="input"
                       type="text"
                     >
                       {(props) => {
@@ -58,7 +61,7 @@ const MetricTable = ({ fields }) => {
                   <td>
                     <Field
                       name={`${name}.totalComponents`}
-                      component="input"
+                      // component="input"
                       type="text"
                     >
                       {(props) => {
@@ -67,7 +70,7 @@ const MetricTable = ({ fields }) => {
                     </Field>
                   </td>
 
-                  <td className={styles.deleteColumn}>
+                  {/* <td className={styles.deleteColumn}>
                     <div
                       className={styles.deleteButton}
                       onClick={() => {
@@ -76,10 +79,10 @@ const MetricTable = ({ fields }) => {
                     >
                       <DeleteIcon />
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
               );
-            })}
+            }) : null}
           </tbody>
         </table>
       ) : null}

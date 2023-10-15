@@ -1,0 +1,42 @@
+.modal::backdrop {
+  background: hsl(0 0% 0% / 50%);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  max-width: 30rem;
+  padding: 1.2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  position: relative;
+  border-radius: 1rem;
+  position: fixed;
+  box-shadow: hsl(0 0% 0% / 10%) 0 0 0.5rem 0.25rem;
+  border: 1px solid #ccc;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  //   padding: 1rem 2rem;
+
+  .topContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 1rem;
+
+    .closeBtn {
+      font-size: 1rem;
+      cursor: pointer;
+      //   position: absolute;
+      //   top: 0.25em;
+      //   right: 0;
+      outline: none;
+      background-color: transparent;
+      border: none;
+    }
+  }
+}

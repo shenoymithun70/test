@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^1.5.1",
     "final-form": "^4.20.10",
     "final-form-arrays": "^3.1.0",
     "i": "^0.3.7",
