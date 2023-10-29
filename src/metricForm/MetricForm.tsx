@@ -7,8 +7,9 @@ import MetricTable from "./metricTable/MetricTable";
 import arrayMutators from "final-form-arrays";
 import { FieldArray } from "react-final-form-arrays";
 import { useEffect, useState } from "react";
-import axios from 'axios'
+import axios from "axios";
 import Modal from "../modal/Modal";
+import { componentsDummyData } from "./componentdata";
 
 const options = [
   { value: "Filters", label: "Filters" },
@@ -23,60 +24,107 @@ const optionsObj = options.reduce((prev, curVal) => {
 }, {});
 
 const MetricForm = () => {
-
   const [componentNameOptions, setComponentNameOptions] = useState([]);
   const [componentNameOptionsObj, setComponentNameOptionsObj] = useState({});
   const [componentNameByIdObj, setComponentNameByIdObj] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [productivityObj, setProductivityObj] = useState<{ componentProductivity: { componentName: string, productivity: number }[], avgProductivity: number, projectName: string }>(null);
+  const [productivityObj, setProductivityObj] = useState<{
+    componentProductivity: { componentName: string; productivity: number }[];
+    avgProductivity: number;
+    projectName: string;
+  }>(null);
   const [error, setError] = useState(false);
-
 
   useEffect(() => {
     (async () => {
-      const options = await axios.get('http://localhost:8000/performancemetrics/standardmetrics').then((res) => res.data);
+      // const options = await axios.get('http://localhost:8000/performancemetrics/standardmetrics').then((res) => res.data);
+      const options = componentsDummyData;
       if (options) {
         // setComponentNameOptions(o)
-        const allOptions = options.reduce((prev, curVal) => {
-          const formattedValue = {
-            value: curVal.componentName,
-            label: curVal.componentName,
-          }
-          prev['optionsArr'].push(formattedValue);
-          prev['optionsObj'][curVal?.componentName] = formattedValue;
-          prev['optionsById'][curVal?.id] = curVal?.componentName;
-          return prev;
-        }, { optionsArr: [], optionsObj: {}, optionsById: {} });
+        const allOptions = options.reduce(
+          (prev, curVal) => {
+            const formattedValue = {
+              value: curVal.componentName,
+              label: curVal.componentName,
+            };
+            prev["optionsArr"].push(formattedValue);
+            prev["optionsObj"][curVal?.componentName] = formattedValue;
+            prev["optionsById"][curVal?.id] = curVal?.componentName;
+            return prev;
+          },
+          { optionsArr: [], optionsObj: {}, optionsById: {} }
+        );
         setComponentNameOptions(allOptions?.optionsArr);
-        setComponentNameOptionsObj(allOptions?.optionsObj)
+        setComponentNameOptionsObj(allOptions?.optionsObj);
         setComponentNameByIdObj(allOptions?.optionsById);
-        console.log(allOptions)
+        console.log(allOptions);
       }
-    })()
-  }, [])
-
+    })();
+  }, []);
 
   const setProductivity = (productivityObj) => {
     setProductivityObj(productivityObj);
-  }
+  };
 
   const onSubmit = async (values: any) => {
     console.log(values);
     // setError(true)
     try {
-      const data = await axios.post('http://localhost:8000/performancemetrics', values).then((res) => res.data);
-      if (data) {
-        const componentProductivity = data?.componentList.map((item) => {
+      const standardComponentsObj = componentsDummyData.reduce(
+        (prev, curVal) => {
+          prev[curVal.componentName] = curVal;
+          return prev;
+        },
+        {}
+      );
+
+      const formattedList = values?.componentList.reduce((prev, curVal) => {
+        const newScore =
+          Number(curVal.totalComponents) *
+          standardComponentsObj[curVal.componentName].standardScore;
+        const newStandardTime =
+          curVal.totalComponents *
+          standardComponentsObj[curVal.componentName].standardTime;
+        prev.push({
+          projectName: values?.projectName,
+          userId: "0",
+          componentId: standardComponentsObj[curVal.componentName].id,
+          noOfComponents: Number(curVal.totalComponents),
+          score: newScore,
+          standardTime: newStandardTime,
+          timeTaken: Number(curVal.timeTaken),
+          productivity:
+            ((newScore * newStandardTime) / (newScore * curVal.timeTaken)) *
+            100,
+          lmEmailId: values?.lmEmailId,
+        });
+        return prev;
+      }, []);
+      // const data = await axios
+      //   .post("http://localhost:8000/performancemetrics", values)
+      //   .then((res) => res.data);
+
+      console.log("formattedList", formattedList);
+      if (formattedList) {
+        const sumOfProductivity = formattedList.reduce((prev, cruVal) => {
+          prev += cruVal.productivity;
+          return prev;
+        }, 0);
+        const avgProductivity = sumOfProductivity / formattedList?.length;
+        const componentProductivity = formattedList?.map((item) => {
           return {
             componentName: componentNameByIdObj[item.componentId],
             productivity: item.productivity,
-          }
+          };
         });
-        const finalProductivity = { componentProductivity: componentProductivity, avgProductivity: data?.avgProductivity, projectName: data?.projectName };
-
+        const finalProductivity = {
+          componentProductivity: componentProductivity,
+          avgProductivity: avgProductivity,
+          projectName: values?.projectName,
+        };
         setIsModalOpen(true);
-        console.log("componentProductivity", finalProductivity)
-        setProductivity(finalProductivity)
+        console.log("componentProductivity", finalProductivity);
+        setProductivity(finalProductivity);
       }
       // return data;
     } catch (error) {
@@ -90,7 +138,7 @@ const MetricForm = () => {
       lmEmailId: "",
       projectName: "",
       componentList: [],
-    }
+    };
   };
 
   const onAdd = (values, formChangeFunc) => {
@@ -172,7 +220,7 @@ const MetricForm = () => {
             form: {
               change,
               mutators: { push, pop },
-              reset
+              reset,
             },
             pristine,
             hasValidationErrors,
@@ -185,7 +233,9 @@ const MetricForm = () => {
                       <h3 className={styles.label}>Name</h3>
                       <Field
                         name="name"
-                        validate={(values) => requiredValidation(values, "name")}
+                        validate={(values) =>
+                          requiredValidation(values, "name")
+                        }
                       >
                         {(props) => {
                           return (
@@ -196,8 +246,8 @@ const MetricForm = () => {
                                 props.meta.error && props.meta.touched
                                   ? props.meta.error
                                   : props.meta.submitError
-                                    ? props.meta.submitError
-                                    : null
+                                  ? props.meta.submitError
+                                  : null
                               }
                               value={props.input.value}
                               onChange={props.input.onChange}
@@ -225,8 +275,8 @@ const MetricForm = () => {
                                 props.meta.error && props.meta.touched
                                   ? props.meta.error
                                   : props.meta.submitError
-                                    ? props.meta.submitError
-                                    : null
+                                  ? props.meta.submitError
+                                  : null
                               }
                               value={props.input.value}
                               onChange={props.input.onChange}
@@ -254,8 +304,8 @@ const MetricForm = () => {
                                 props.meta.error && props.meta.touched
                                   ? props.meta.error
                                   : props.meta.submitError
-                                    ? props.meta.submitError
-                                    : null
+                                  ? props.meta.submitError
+                                  : null
                               }
                               value={props.input.value}
                               onChange={props.input.onChange}
@@ -283,8 +333,8 @@ const MetricForm = () => {
                                 props.meta.error && props.meta.touched
                                   ? props.meta.error
                                   : props.meta.submitError
-                                    ? props.meta.submitError
-                                    : null
+                                  ? props.meta.submitError
+                                  : null
                               }
                               value={props.input.value}
                               onChange={props.input.onChange}
@@ -301,12 +351,12 @@ const MetricForm = () => {
                       <h3 className={styles.label}>Component Name</h3>
                       <Field
                         name="componentName"
-                      // validate={(values) =>
-                      //   validateField(values, "Component Name")
-                      // }
-                      //   validate={(values) =>
-                      //     requiredValidation(values, "Component Name")
-                      //   }
+                        // validate={(values) =>
+                        //   validateField(values, "Component Name")
+                        // }
+                        //   validate={(values) =>
+                        //     requiredValidation(values, "Component Name")
+                        //   }
                       >
                         {(props) => {
                           // {
@@ -343,7 +393,7 @@ const MetricForm = () => {
                       <h3 className={styles.label}>Time Taken</h3>
                       <Field
                         name="timeTaken"
-                      // validate={(values) => validateField(values, "Time Taken")}
+                        // validate={(values) => validateField(values, "Time Taken")}
                       >
                         {(props) => {
                           return (
@@ -356,8 +406,8 @@ const MetricForm = () => {
                                   props.meta.error && props.meta.touched
                                     ? props.meta.error
                                     : props.meta.submitError
-                                      ? props.meta.submitError
-                                      : null
+                                    ? props.meta.submitError
+                                    : null
                                 }
                                 value={props.input.value}
                                 onChange={props.input.onChange}
@@ -376,9 +426,9 @@ const MetricForm = () => {
                       <h3 className={styles.label}>No of Components</h3>
                       <Field
                         name="totalComponents"
-                      // validate={(values) =>
-                      //   validateField(values, "No of Components")
-                      // }
+                        // validate={(values) =>
+                        //   validateField(values, "No of Components")
+                        // }
                       >
                         {(props) => {
                           return (
@@ -391,8 +441,8 @@ const MetricForm = () => {
                                   props.meta.error && props.meta.touched
                                     ? props.meta.error
                                     : props.meta.submitError
-                                      ? props.meta.submitError
-                                      : null
+                                    ? props.meta.submitError
+                                    : null
                                 }
                                 value={props.input.value}
                                 onChange={props.input.onChange}
@@ -408,8 +458,8 @@ const MetricForm = () => {
                       type="reset"
                       disabled={
                         !values.componentName ||
-                          !values.timeTaken ||
-                          !values.totalComponents
+                        !values.timeTaken ||
+                        !values.totalComponents
                           ? true
                           : false
                       }
@@ -457,7 +507,7 @@ const MetricForm = () => {
 
                 <FieldArray name="componentList">
                   {({ fields }) => {
-                    return <MetricTable fields={fields} />
+                    return <MetricTable fields={fields} />;
                   }}
                 </FieldArray>
               </form>
@@ -466,24 +516,31 @@ const MetricForm = () => {
         />
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => {
-        // onclose function
-        setProductivityObj(null)
-      }}>
-        {error ? <div>Something went wrong</div> :
-          productivityObj ? <>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          // onclose function
+          setProductivityObj(null);
+          window.location.reload();
+          // setIsModalOpen(false);
+        }}
+      >
+        {error ? (
+          <div>Something went wrong</div>
+        ) : productivityObj ? (
+          <>
             {productivityObj.componentProductivity.map((item) => {
-              return <div>{`${item.componentName} Productivity : ${item.productivity}`}</div>
+              return (
+                <div>{`${item.componentName} Productivity : ${item.productivity}`}</div>
+              );
             })}
             <div>
               {`Average Productivity of ${productivityObj?.projectName}: ${productivityObj.avgProductivity}`}
             </div>
-          </> : null
-        }
+          </>
+        ) : null}
       </Modal>
     </>
-
-
   );
 };
 
